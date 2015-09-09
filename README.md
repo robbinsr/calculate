@@ -1,4 +1,4 @@
-You are reading the README.md file in the calculate GitHub repository for Russ Robbins. This is a project that is a work in progress. 
+You are reading the README.md file in the calculating GitHub repository for Russ Robbins. This is a project that is a work in progress. 
 
 The purpose of the code in this repository is to provide some insight into how I am using or can use Python. The package is far from complete. When/if completed this will be the backend for an interactive binary classification confusion matrix that will allow you to enter three of any of the individual, joint, or conditional probabilities and in return receive the other thirteen probability values back. In addition, ratios and derivative ratios such as positive likelihood and diagnostic odds will be provided. The current design relies on 56 probability equation-based functions, a dictionary that stores probabilities, a dictionary that dispatches functions, and an argument parser which captures and passes command line arguments.
 
