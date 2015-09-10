@@ -5,6 +5,8 @@ from argparse import ArgumentParser
 from argparse import RawDescriptionHelpFormatter
 from argparse import ArgumentTypeError
 
+# use lambdas not named functions
+
 __author__ = "Russ Robbins"
 __date__ = "9/9/2015"
 __copyright__ = "None"
@@ -300,4 +302,8 @@ probs['ab'] = dispatch[('ab', 'a', 'anb')](probs['ab'], probs['a'], probs['anb']
 probs['ab'] = dispatch[('ab', 'b', 'nab')](probs['ab'], probs['b'], probs['nab'])
 probs['anb'] = dispatch[('anb', 'a', 'nbga')](probs['anb'], probs['a'], probs['nbga'])
 
+<<<<<<< HEAD
 print(probs['anb'])
+=======
+print(probs)
+>>>>>>> d3e0472bb8781fe4ee9e46aae6fa561db7abcdb9
