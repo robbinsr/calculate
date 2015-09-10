@@ -15,13 +15,10 @@ __maintainer__ = "Russ Robbins"
 __email__ = "russ.robbins@outlook.com"
 __status__ = "Sandbox"
 __encoding__ = "UTF-8"
-__todo__ = 'be sure to validate prior to returning'
 
 """
-Calculate
-#
-#
-#
+Takes three probabilities from a confusion table and returns the other
+probabilities.
 """
 
 parser = ArgumentParser(formatter_class=RawDescriptionHelpFormatter)
@@ -40,6 +37,11 @@ def probability(value):
         raise ArgumentTypeError(
             'Input value {} should be between 0 and 1'.format(value))
     return value
+
+
+"""
+rework the three below since we are going to use all the probabilities
+"""
 
 
 def is_num_arguments_3(arguments: dict):
@@ -71,6 +73,10 @@ def is_prob_sum_lteq_1(arguments: dict):
         raise AssertionError("Number of probabilities input is {}, but "
                              "should be 3".format(args_count))
 
+
+"""
+to parse command line arguments passed to program
+"""
 
 parser.add_argument("-a", "--a", dest="a",
                     help="Use this argument to input the probability "
@@ -220,6 +226,11 @@ parser.add_argument("-q", "--quiet",
                     action="store_false", dest="verbose", default=True,
                     help="don't print status messages to stdout")
 
+"""
+move from argument parser to probability dict
+need to rename namespace_args probs if vars() returns correct shape
+"""
+
 # pass from argsArgumentParser to dict
 namespace_args = vars(parser.parse_args())
 
@@ -227,361 +238,66 @@ namespace_args = vars(parser.parse_args())
 namespace_args = dict([(k, v) for (k, v) in namespace_args.items() if v is
                        not True])
 
-# remove dict items with no values
-namespace_args = dict(
-    [(k, v) for (k, v) in namespace_args.items() if v is not None])
+"""
+probably don't need next assignment expression
+"""
+# # remove dict items with no values
+# namespace_args = dict(
+#     [(k, v) for (k, v) in namespace_args.items() if v is not None])
 
-# check to see that number of arguments passed to module is 3
-is_num_arguments_3(namespace_args)
+"""
+can't use two items below until the functions at program head are rebuilt
+"""
+# # check to see that number of arguments passed to module is 3
+# is_num_arguments_3(namespace_args)
+#
+# # check to see that sum of the three arguments is less than or equal to 1
+# is_prob_sum_lteq_1(namespace_args)
 
-# check to see that sum of the three arguments is less than or equal to 1
-is_prob_sum_lteq_1(namespace_args)
+###
 
-# define probability dictionary, which when complete will be returned
-probs = {'a': None,
-         'not_a': None,
-         'b': None,
-         'not_b': None,
-         'a_and_b': None,
-         'a_and_not_b': None,
-         'not_a_and_b': None,
-         'not_a_and_not_b': None,
-         'a_giv_b': None,
-         'a_giv_not_b': None,
-         'not_a_giv_b': None,
-         'not_a_giv_not_b': None,
-         'b_giv_a': None,
-         'b_giv_not_a': None,
-         'not_b_giv_a': None,
-         'not_b_giv_not_a': None}
+"""declare probabilities dictionary"""
 
-# print("namespace_args: {}".format(namespace_args))
-# print("probs: {}".format(probs))
+probs = {'a': .5, 'na': None, 'b': None, 'nb': None,
+         'ab': None, 'anb': None, 'nab': None, 'nanb': None,
+         'agb': None, 'agnb': None, 'nagb': None, 'nagnb': None,
+         'bga': None, 'nbga': 1, 'bgna': None, 'nbgna': None}
 
-def update_probs_w_input_probs(probs, namespace_args):
-    for (arg_key, arg_val) in namespace_args.items():
-        #print((arg_key, arg_val))
-        for (pk, pv) in probs.items():
-            #print((pk, pv))
-            if arg_key==pk:
-                #print("hit")
-                probs[pk] = arg_val
-    return probs
+"""
+at this point pass arguments to the probs dictionary so it can be used against
+ the switch dict
+"""
 
-probs = update_probs_w_input_probs(probs, namespace_args)
+"""declare the dispatch dict"""
 
-print(probs)
+dispatch = {
+    # a and b
+    ('ab', 'a', 'bga'): lambda ab, a, bga:
+    float(a) * float(bga) if ab is None and a is not None and bga is not None
+    else ab,
+    ('ab', 'b', 'agb'): lambda ab, b, agb:
+    float(b) * float(agb) if ab is None and b is not None and agb is not None
+    else ab,
+    ('ab', 'a', 'anb'): lambda ab, a, anb:
+    float(a) - float(anb) if ab is None and a is not None and anb is not None
+    else ab,
+    ('ab', 'b', 'nab'): lambda ab, b, nab:
+    float(b) - float(nab) if ab is None and b is not None and nab is not None
+    else ab,
+    # a and not b
+    ('anb', 'a', 'nbga'): lambda anb, a, nbga:
+    float(a) * float(nbga) if anb is None and a is not None and nbga is not None
+    else anb
+}
 
-#four functions to determine the probability of A
+"""
+may need while loop for the dispatches
+"""
 
-def a_from_a_and_b_also_b_giv_a(a_and_b, b_giv_a):
-    """
-    Calculate the probability of a from a_and_b as well as b_giv_a
-    :param a_and_b:
-    :param b_giv_a:
-    :return: a
-    """
-    a = None
-    if a_and_b is not None and b_giv_a is not None:
-        try:
-            a = float(a_and_b) / float(b_giv_a)
-        except ZeroDivisionError:
-            print("WARNING: Value for B given A {} is zero, Value for A "
-                "not computed".format(b_giv_a))
-    return a
+probs['ab'] = dispatch[('ab', 'a', 'bga')](probs['ab'], probs['a'], probs['bga'])
+probs['ab'] = dispatch[('ab', 'b', 'agb')](probs['ab'], probs['b'], probs['agb'])
+probs['ab'] = dispatch[('ab', 'a', 'anb')](probs['ab'], probs['a'], probs['anb'])
+probs['ab'] = dispatch[('ab', 'b', 'nab')](probs['ab'], probs['b'], probs['nab'])
+probs['anb'] = dispatch[('anb', 'a', 'nbga')](probs['anb'], probs['a'], probs['nbga'])
 
-def a_from_a_and_not_b_also_not_b_giv_a(a_and_not_b, not_b_giv_a):
-    """
-    Calculate the probability of a from a_and_not_b as well as not_b_giv_a
-    :param a_and_not_b:
-    :param not_b_giv_a:
-    :return: a
-    """
-    a = None
-    if a_and_not_b is not None and not_b_giv_a is not None:
-        try:
-            a = float(a_and_not_b) / float(not_b_giv_a)
-        except ZeroDivisionError:
-            print("WARNING: Value for not B given A {} is zero, Value for A "
-                "not computed".format(not_b_giv_a))
-    return a
-
-def a_from_a_and_b_also_a_and_not_b(a_and_b, a_and_not_b):
-    """
-    Calculate a from a_and_b as well as a_and_not_b
-    :param a_and_b:
-    :param a_and_not_b:
-    :return: a
-    """
-    a = None
-    if a_and_b is not None and a_and_not_b is not None:
-        a = a_and_b + a_and_not_b
-
-    return a
-
-def a_from_not_a(not_a):
-    """
-    Calculate the probability of A from the probability of not A
-    :param not_a:
-    :return: a
-    """
-    a = None
-    if not_a is not None:
-        a = float(1) - float(not_a)
-
-    return a
-
-#four functions to determine the probablity of not A
-
-def not_a_from_not_a_and_b_also_b_giv_not_a(not_a_and_b, b_giv_not_a):
-    """
-    Determine not_a from not_a_and_b as well as b_giv_not_a
-    :param not_a_and_b:
-    :param b_giv_not_a:
-    :return: not_a
-    """
-    not_a = None
-    if not_a_and_b is not None and b_giv_not_a is not None:
-        try:
-            not_a = not_a_and_b / b_giv_not_a
-        except ZeroDivisionError:
-            print("WARNING: Value for B given not A {} is zero, Value for not A "
-                "not computed".format(b_giv_not_a))
-
-    return not_a
-
-#need not_a_and_b + not_a_and_not_b
-
-#need not_a_and_not_b divided by not_b_and_not_a
-
-#need 1 - a
-
-#need four functions for computing B
-
-#need four functions for computing not B
-
-# four functions to determine the probability of a and b
-
-def a_and_b_from_a_and_not_b_also_a(a_and_not_b, a):
-    """ Calculate a_and_b from a_and_not_b as well as a
-    :param a_and_not_b:
-    :param a
-    :return: a_and_b
-    """
-    a_and_b = None
-    if a_and_not_b is not None and a is not None:
-        a_and_b = float(a) - float(a_and_not_b)
-    return a_and_b
-
-def a_and_b_from_b_and_not_a_also_b(not_a_and_b, b):
-    """ Calculate a_and_b from not_a_and_b as well as b
-    :param not_a_and_b:
-    :param b
-    :return: a_and_b
-    """
-    a_and_b = None
-    if not_a_and_b is not None and b is not None:
-        a_and_b = float(b) - float(not_a_and_b)
-    return a_and_b
-
-def a_and_b_from_a_giv_b_also_b(a_giv_b, b):
-    """ Calculate a_and_b from a_giv_b as well as b
-    :rtype : float
-    :param a_giv_b
-    :param b
-    :return a_and_b
-    """
-    a_and_b = None
-    if a_giv_b is not None and b is not None:
-        a_and_b = float(b) * float(a_giv_b)
-
-    return a_and_b
-
-def a_and_b_from_b_giv_a_also_a(b_giv_a, a):
-    """ Calculate a_and_b from b_giv_a as well as a
-    :param b_giv_a
-    :param a
-    :return a_and_b
-    """
-    a_and_b = None
-    if b_giv_a is not None:
-         a_and_b = float(b) * float(b_giv_a)
-
-    return a_and_b
-
-# four functions to determinine the probability of a and not b
-
-def a_and_not_b_from_a_and_b_also_a(a_and_b, a):
-    """ Calculate a_and_not_b from a_and_b as well as a
-    :param a_and_b:
-    :param a
-    :return: a_and_not_b
-    """
-    a_and_not_b = None
-    if a_and_b is not None:
-        a_and_not_b = float(a) - float(a_and_b)
-    return a_and_not_b
-
-def a_and_not_b_from_not_a_and_not_b_also_not_b(not_a_and_not_b, not_b):
-    """ Calculate a_and_not_b from not_a_and_not_b as well as not b
-    :param not_a_and_not_b:
-    :param not_b
-    :return: a_and_not_b
-    """
-    a_and_not_b = None
-    if not_a_and_not_b is not None:
-        a_and_not_b = float(not_b) - float(not_a_and_not_b)
-    return a_and_not_b
-
-def a_and_not_b_from_a_giv_not_b_also_not_b(a_giv_not_b, not_b):
-    """ Calculate a_and_b from a_giv_not_b as well as not_b
-    :rtype : float
-    :param a_giv_not_b
-    :param not_b
-    :return a_and_not_b
-    """
-    a_and_not_b = None
-    if a_giv_not_b is not None and not_b is not None:
-        a_and_not_b = float(not_b) * float(a_giv_not_b)
-    return a_and_not_b
-
-def a_and_not_b_from_not_b_giv_a_also_a(not_b_giv_a, a):
-    """ Calculate a_and_b from not_b_giv_a
-    :rtype : float
-    :param not_b_giv_a
-    :param a
-    :return a_and_not_b
-    """
-    a_and_not_b = None
-    if not_b_giv_a is not None:
-         a_and_not_b = float(a) * float(not_b_giv_a)
-    return a_and_not_b
-
-# four functions to determine the probability of not a and b
-
-def not_a_and_b_from_a_and_b_also_b(a_and_b, b):
-    """ Calculate not_a_and_b from a_and_b as well as b
-    :param a_and_b:
-    :param b
-    :return: not_a_and_b
-    """
-    not_a_and_b = None
-    if a_and_b is not None:
-        not_a_and_b = float(b) - float(a_and_b)
-    return not_a_and_b
-
-def not_a_and_b_from_not_a_and_not_b_also_not_a(not_a_and_not_b, not_a):
-    """ Calculate not_a_and_b from not_a_and_not_b as well as not_a
-    :param not_a_and_not_b:
-    :param not_a
-    :return: not_a_and_b
-    """
-    not_a_and_b = None
-    if not_a_and_not_b is not None:
-        not_a_and_b = float(not_a) - float(not_a_and_not_b)
-    return not_a_and_b
-
-def not_a_and_b_from_b_giv_not_a_also_not_a(b_giv_not_a, not_a):
-    """Calculate not_a_and_b from b_giv_not_a as well as not_a
-    :param b_giv_not_a
-    :param not_a
-    :return not_a_and_b
-    """
-    not_a_and_b = None
-    if b_giv_not_a is not None and not_a is not None:
-        not_a_and_b = float(not_a) * float(b_giv_not_a)
-    return not_a_and_b
-
-def not_a_and_b_from_not_a_giv_b_also_b(not_a_giv_b, b):
-    """Calculate not_a_and_b from not_a_giv_b as well as b
-    :param not_a_giv_b
-    :param b
-    :return: not_a_and_b
-    """
-    not_a_and_b = None
-    if not_a_giv_b is not None and b is not None:
-        not_a_and_b = float(b) * not_a_giv_b
-    return not_a_and_b
-
-switch = {  #functions to determine the probability of A
-            ('a_and_b','b_giv_a','a')
-            :a_from_a_and_b_also_b_giv_a,
-            ('a_and_not_b','not_b_giv_a','a'):
-             a_from_a_and_not_b_also_not_b_giv_a,
-            ('a_and_b','a_and_not_b','a'):
-            a_from_a_and_b_also_a_and_not_b,
-            ('not_a', None, 'a'):
-            a_from_not_a,
-
-            #functions to determine the probability of not A
-
-            ('not_a_and_b','b_giv_not_a','not_a'):
-            not_a_from_not_a_and_b_also_b_giv_not_a,
-
-            # need not_a_and_b + not_a_and_not_b
-
-            # need not_a_and_not_b divided by not_b_and_not_a
-
-            # need 1 - a
-
-            # need four functions for computing B
-
-            # need four functions for computing not B
-
-            #functions to determine the probability of A and B
-           ('a_and_not_b','a', 'a_and_b'):
-               a_and_b_from_a_and_not_b_also_a,
-           ('not_a_and_b','b', 'a_and_b'):
-               a_and_b_from_b_and_not_a_also_b,
-           ('a_giv_b', 'b', 'a_and_b'):
-               a_and_b_from_a_giv_b_also_b,
-           ('b_giv_a','a', 'a_and_b'):
-               a_and_b_from_b_giv_a_also_a,
-           #functions to determine the probability of A intersection Not B
-           ('a_and_b', 'a','a_and_not_b'):
-               a_and_b_from_a_and_not_b_also_a,
-           ('not_a_and_not_b','not_b','a_and_not_b'):
-              a_and_not_b_from_not_a_and_not_b_also_not_b,
-           ('a_giv_not_b','not_b','a_and_not_b'):
-               a_and_not_b_from_a_giv_not_b_also_not_b,
-          ('not_b_giv_a','a','a_and_not_b'):
-               a_and_not_b_from_not_b_giv_a_also_a,
-           #functions to determine the probability of Not A and B
-          ('a_and_b', 'b', 'not_a_and_b'):
-               not_a_and_b_from_a_and_b_also_b,
-          ('not_a_and_not_b','not_a', 'not_a_and_b'):
-               not_a_and_b_from_not_a_and_not_b_also_not_a,
-           ('b_giv_not_a','not_a','not_a_and_b'):
-               not_a_and_b_from_b_giv_not_a_also_not_a,
-           ('not_a_giv_b','b','not_a_and_b'):
-                not_a_and_b_from_not_a_giv_b_also_b
-
-            #need twelve functions for b_giv_a, not_b_giv_a, b_giv_not_a,
-            # and not_b_giv_not_a
-
-            #need twelve functions for a_giv_b, not_a_giv_b, a_giv_not_b,
-            # and not_a_giv_not_b
-
-            #ratios go here
-            }
-
-
-def dispatch(p: dict, s: dict):
-    """ Update probabilites based on known probabilities
-    :param p # probs
-    :param s # switch
-    """
-    for (pk, pv) in p.items():
-        if pv is None:
-            for ((sk1, sk2), sv) in s.items():
-                if sk2 == pk:
-                    p[pk] = sv(p[sk1])
-
-        else:
-            pass
-
-    return p
-
-probs = dispatch(probs, switch)
-
-print(probs)
+print(probs['anb'])
