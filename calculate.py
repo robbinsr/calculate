@@ -5,6 +5,8 @@ from argparse import ArgumentParser
 from argparse import RawDescriptionHelpFormatter
 from argparse import ArgumentTypeError
 
+# use lambdas not named functions
+
 __author__ = "Russ Robbins"
 __date__ = "9/9/2015"
 __copyright__ = "None"
