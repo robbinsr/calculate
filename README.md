@@ -2,7 +2,7 @@ You are reading the README.md file in the calculating GitHub repository for Russ
 
 What is a confusion matrix? Why is it valuable?
 
-Performance measures for tools that indicate whether something has occurred or has not occurred can be evaluated using a confustion matrix. 
+Performance measures for tools that indicate whether something has occurred or has not occurred can be evaluated using a confusion matrix. 
 For example, if a medical test is used to indicate whether I actually have cancer, how likely is it to be actually correct in its indication?
 
 Similarly, performance measures for tools that predict whether something will occur or will not occur can be reported a confusion matrix.
